@@ -5,7 +5,7 @@ import java.net.Socket;
 
 public class Client {
 
-    private static String host = "localhost";
+    private static String host;
     private static Integer port = 5000;
 
     private static String regrasJogo = "\nRegras:\n - (R)ocha vence (T)esoura\n"
@@ -19,6 +19,11 @@ public class Client {
         System.out.println("--- Bem-Vindo ao Jokenpo (Cliente) ---");
 
         BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
+
+        // Solicitar o endereço IP do servidor
+        System.out.println("Por favor, insira o endereço IP do servidor:");
+        host = inFromUser.readLine();
+
         Socket clientSocket = new Socket(Client.host, Client.port);
         DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
         BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
