@@ -1,4 +1,3 @@
-
 import java.io.*;
 import java.net.*;
 import java.util.Random;
@@ -9,17 +8,14 @@ public class Server {
     private static Integer port = 5000;
 
     public static void main(String args[]) throws Exception {
-        String outputClient1 = "";
-        String outputClient2 = "";
-        String inputClient1;
-        String inputClient2;
-
         System.out.println("--- Bem-Vindo ao Jokenpo (Servidor) ---");
 
-        Server.port = Server.getPort();
-        ServerSocket welcomeSocket = new ServerSocket(Server.port);
+        port = getPort();
+        ServerSocket welcomeSocket = new ServerSocket(port);
 
-        System.out.println("Ok, estamos trabalhando na porta " + welcomeSocket.getLocalPort() + "...");
+        // Exibir o endereço IP do servidor
+        String serverIp = InetAddress.getLocalHost().getHostAddress();
+        System.out.println("Servidor iniciado no IP: " + serverIp + " e porta: " + port);
 
         while (!welcomeSocket.isClosed()) {
             Socket client1 = welcomeSocket.accept();
@@ -29,37 +25,48 @@ public class Server {
             DataOutputStream outToClient1 = new DataOutputStream(client1.getOutputStream());
             BufferedReader inFromClient1 = new BufferedReader(new InputStreamReader(client1.getInputStream()));
 
-            String mode = inFromClient1.readLine();
+            String modeClient1 = inFromClient1.readLine();
 
-            if (mode.equals("1")) { // Modo contra outro jogador
-                System.out.println("Modo contra outro jogador selecionado.");
+            if (modeClient1.equals("1")) { // Modo contra outro jogador
+                System.out.println("Jogador 1 escolheu jogar contra outro jogador.");
 
                 Socket client2 = welcomeSocket.accept();
                 if (client2.isConnected()) {
-                    System.out.println("Jogador 2 (" + (client2.getLocalAddress().toString()).substring(1) + ":" + client1.getLocalPort() + ") entrou... Vamos começar!");
+                    System.out.println("Jogador 2 (" + (client2.getLocalAddress().toString()).substring(1) + ":" + client2.getLocalPort() + ") entrou...");
                 }
                 DataOutputStream outToClient2 = new DataOutputStream(client2.getOutputStream());
                 BufferedReader inFromClient2 = new BufferedReader(new InputStreamReader(client2.getInputStream()));
 
-                inputClient1 = inFromClient1.readLine();
-                inputClient2 = inFromClient2.readLine();
+                String modeClient2 = inFromClient2.readLine();
 
-                outputClient1 = getResult(inputClient1, inputClient2);
-                outputClient2 = getResult(inputClient2, inputClient1);
+                if (modeClient2.equals("1")) {
+                    System.out.println("Jogador 2 escolheu jogar contra outro jogador. Vamos começar!");
 
-                outToClient1.writeBytes(outputClient1 + "\n");
-                outToClient2.writeBytes(outputClient2 + "\n");
+                    String inputClient1 = inFromClient1.readLine();
+                    String inputClient2 = inFromClient2.readLine();
+
+                    System.out.println("Jogada do Jogador 1: " + inputClient1 + " | Jogada do Jogador 2: " + inputClient2);
+
+                    String outputClient1 = getResult(inputClient1, inputClient2);
+                    String outputClient2 = getResult(inputClient2, inputClient1);
+
+                    outToClient1.writeBytes(outputClient1 + "\n");
+                    outToClient2.writeBytes(outputClient2 + "\n");
+                } else {
+                    outToClient1.writeBytes("Jogador 2 escolheu outro modo. Reinicie o jogo.\n");
+                    outToClient2.writeBytes("Modo diferente selecionado. Reinicie o jogo.\n");
+                }
 
                 client2.close();
-            } else if (mode.equals("2")) { // Modo contra CPU
+            } else if (modeClient1.equals("2")) { // Modo contra CPU
                 System.out.println("Modo contra CPU selecionado.");
 
-                inputClient1 = inFromClient1.readLine();
-                inputClient2 = generateCPUChoice();
+                String inputClient1 = inFromClient1.readLine();
+                String inputClient2 = generateCPUChoice();
 
                 System.out.println("Jogada do jogador: " + inputClient1 + " | Jogada da CPU: " + inputClient2);
 
-                outputClient1 = getResult(inputClient1, inputClient2);
+                String outputClient1 = getResult(inputClient1, inputClient2);
 
                 outToClient1.writeBytes(outputClient1 + "\n");
             }
@@ -81,9 +88,9 @@ public class Server {
         } else if ((player.equals("R") && opponent.equals("T")) ||
                 (player.equals("T") && opponent.equals("P")) ||
                 (player.equals("P") && opponent.equals("R"))) {
-            return "Parabéns, você venceu! :) ";
+            return "Parabens, voce venceu";
         } else {
-            return "Que pena, você perdeu! :( ";
+            return "Que pena, voce perdeu";
         }
     }
 
@@ -95,10 +102,10 @@ public class Server {
         Integer input;
         try (Scanner sc = new Scanner(System.in)) {
             do {
-                System.out.println("Por favor digite o número da porta, que esteja entre 1 e 65535 ou \ndigite \"0\" para continuar com a porta padrão(" + Server.port + "): ");
+                System.out.println("Por favor digite o número da porta, que esteja entre 1 e 65535 ou \ndigite \"0\" para continuar com a porta padrão(" + port + "): ");
                 input = sc.nextInt();
-            } while (input != 0 && !Server.portaValida(input));
+            } while (input != 0 && !portaValida(input));
         }
-        return input == 0 ? Server.port : input;
+        return input == 0 ? port : input;
     }
 }
